@@ -44,17 +44,16 @@
     addEventListener('polymer-ready', function () {
         var t = document.querySelector("#autobind");
         t.title = "My Horizontal Bar Chart";
-        t.height = 400;
-        t.width = 800;
-        d3.csv("bachelors-degrees.csv", function (error, data) {
-            data.forEach(function (d) {
-                d.Total = +d.Total;
-                d["Bachelor's degree"] = +d["Bachelor's degree"];
-                d.percent = d["Bachelor's degree"] / d.Total;
-
-            });
-            t.data = data;
-        });
+        t.height = 300;
+        t.width = 600;
+        t.data = [
+            {"Name": "Alabama", "GeoID": "04000US01", "Total": 3193078, "Bachelor's degree": 443488, "percent": 0.13889043737735188},
+            {"Name": "Alaska", "GeoID": "04000US02", "Total": 456862, "Bachelor's degree": 77153, "percent": 0.16887594065604056},
+            {"Name": "Arizona", "GeoID": "04000US04", "Total": 4211223, "Bachelor's degree": 719546, "percent": 0.17086390343137847},
+            {"Name": "Arkansas", "GeoID": "04000US05", "Total": 1943427, "Bachelor's degree": 254903, "percent": 0.1311616026740392},
+            {"Name": "California", "GeoID": "04000US06", "Total": 24443872, "Bachelor's degree": 4697422, "percent": 0.19217176394967214},
+            {"Name": "Colorado", "GeoID": "04000US08", "Total": 3387310, "Bachelor's degree": 789859, "percent": 0.23318178731796027},
+        ];
         t.barClicked = function (e, detail) {
             console.log('bar-cliked = ' + JSON.stringify(detail));
             t.name = detail.Name;
