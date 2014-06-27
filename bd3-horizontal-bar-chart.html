@@ -1,0 +1,190 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../bd3-base/bd3-base.html">
+
+<polymer-element name="bd3-horizontal-bar-chart" extends="bd3-base" attributes="xValue yValue yAxisText">
+
+    <template>
+        <link href="../bd3-base/bd3-base.css" rel="stylesheet">
+
+        <style>
+            .bar rect {
+                stroke: #fff;
+                shape-rendering: crispEdges;
+            }
+
+            .bar rect.background {
+                fill: #eee;
+            }
+
+            .bar text {
+                font-size: 12px;
+                fill: #fff;
+            }
+
+            line.median {
+                stroke: #777;
+                stroke-width: 1;
+            }
+
+        </style>
+
+        <div id="chart"></div>
+
+    </template>
+
+    <script>
+        // TODO: figure out why these have to be outside
+        var x, y,percent, xAxis;
+
+        Polymer('bd3-horizontal-bar-chart', {
+
+            constructChart: function() {
+                var chart = this.$.chart;
+                this.margin = {top: 80, right: 20, bottom: 30, left: 20};
+                this.svgWidth = parseInt(d3.select(chart).style('width'), 10);
+                this.svgWidth = this.svgWidth - this.margin.left - this.margin.right;
+                this.barHeight = 20;
+                this.spacing = 3;
+                this.title = this.title || '';
+                percent = d3.format('%');
+
+                // scales and axes
+                x = d3.scale.linear()
+                        .range([0, this.svgWidth])
+                        .domain([0, .4]); // hard-coding this because I know the data
+
+                y = d3.scale.ordinal();
+
+                xAxis = d3.svg.axis()
+                        .scale(x)
+                        .tickFormat(percent);
+
+                // create the chart
+                this.svg = d3.select(chart).append('svg')
+                        .style('width', (this.svgWidth + this.margin.left + this.margin.right) + 'px')
+                        .append('g')
+                        .attr('transform', 'translate(' + [this.margin.left, this.margin.top] + ')');
+            },
+
+            render: function(data) {
+
+                // set y domain
+                y.domain(d3.range(data.length))
+                        .rangeBands([0, data.length * this.barHeight]);
+
+                // set height based on data
+                this.svgHeight = y.rangeExtent()[1];
+                d3.select(this.$.chart)
+                        .style('height', (this.svgHeight + this.margin.top + this.margin.bottom) + 'px')
+
+
+                // render the chart
+
+                this.svg.append("text")
+                        .attr("x", 0)
+                        .attr("y", -50)
+                        .attr("class","title")
+                        .text(this.title);
+
+                // add top and bottom axes
+                this.svg.append('g')
+                        .attr('class', 'x axis top')
+                        .call(xAxis.orient('top'));
+
+
+                this.svg.append('g')
+                        .attr('class', 'x axis bottom')
+                        .attr('transform', 'translate(0,' + this.svgHeight + ')')
+                        .call(xAxis.orient('bottom'));
+
+
+                var bars = this.svg.selectAll('.bar')
+                        .data(data)
+                        .enter().append('g')
+                        .attr('class', 'bar')
+                        .attr('transform', function(d, i) { return 'translate(0,'  + y(i) + ')'; });
+
+                bars.append('rect')
+                        .attr('class', 'background')
+                        .attr('height', y.rangeBand())
+                        .attr('width', this.svgWidth);
+
+                bars.append('rect')
+                        .attr('class', 'percent')
+                        .attr('height', y.rangeBand())
+                        .attr('width', function(d) { return x(d.percent); })
+
+                bars.append('text')
+                        .text(function(d) { return d.Name; })
+                        .attr('class', 'name')
+                        .attr('y', y.rangeBand() - 5)
+                        .attr('x', this.spacing);
+
+                bars.on('mousedown', (function(d) {
+                    this.fire('bar-clicked', d);
+                }).bind(this));
+
+                bars.on('mouseover', (function(d) {
+                    this.fire('bar-mouseover', d);
+                }).bind(this));
+
+                bars.on('mouseout', (function(d) {
+                    this.fire('bar-mouseout', d);
+                }).bind(this));
+
+                // add median ticks
+                var median = d3.median(data, function(d) { return d.percent; });
+
+                d3.select('span.median').text(percent(median));
+
+                bars.append('line')
+                        .attr('class', 'median')
+                        .attr('x1', x(median))
+                        .attr('x2', x(median))
+                        .attr('y1', 1)
+                        .attr('y2', y.rangeBand() - 1);
+            },
+            resize: function() {
+                // update width
+                this.svgWidth = parseInt(d3.select(this.$.chart).style('width'), 10);
+                this.svgWidth = this.svgWidth - this.margin.left - this.margin.right;
+
+                // resize the chart
+                x.range([0, this.svgWidth]);
+                d3.select(this.svg.node().parentNode)
+                        .style('height', (y.rangeExtent()[1] + this.margin.top + this.margin.bottom) + 'px')
+                        .style('width', (this.svgWidth + this.margin.left + this.margin.right) + 'px');
+
+                this.svg.selectAll('rect.background')
+                        .attr('width', this.svgWidth);
+
+                this.svg.selectAll('rect.percent')
+                        .attr('width', function(d) { return x(d.percent); });
+
+                // update median ticks
+                var median = d3.median(this.svg.selectAll('.bar').data(),
+                        function(d) { return d.percent; });
+
+                this.svg.selectAll('line.median')
+                        .attr('x1', x(median))
+                        .attr('x2', x(median));
+
+
+                // update axes
+                this.svg.select('.x.axis.top').call(xAxis.orient('top'));
+                this.svg.select('.x.axis.bottom').call(xAxis.orient('bottom'));
+
+            },
+            titleChanged: function() {
+                if (this.svg && this.svg.select('text.title')) {
+                    this.svg.select('text.title')
+                            .text(this.title);
+                }
+            }
+
+        });
+
+    </script>
+
+</polymer-element>
+

@@ -1,0 +1,28 @@
+{
+    "name": "bd3-horizontal-bar-chart",
+    "homepage": "http://blackhawkwebcomponents.github.io/bd3-horizontal-bar-chart",
+    "description": "",
+    "main": "bd3-horizontal-bar-chart.html",
+    "authors": [
+        "Rob Beers"
+    ],
+    "license": "Apache2",
+    "version": "0.0.1",
+    "ignore": [
+        "**/.*",
+        "node_modules",
+        "bower_components",
+        "test",
+        "tests",
+        "../"
+    ],
+    "keywords": [
+        "web-component",
+        "web-components",
+        "polymer"
+    ],
+    "dependencies": {
+        "polymer": "Polymer/polymer#>=0.3.0 <1.0.0",
+        "bd3-base": "BlackhawkWebComponents/bd3-base#master"
+    }
+}
